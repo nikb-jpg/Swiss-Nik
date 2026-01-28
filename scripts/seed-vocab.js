@@ -1,0 +1,46 @@
+const fs = require('fs');
+const path = require('path');
+
+const OUTPUT_FILE = path.join(__dirname, '../data/vocabulary.json');
+
+// A sample of the "Top 5000" words. In a real app, this would be a huge file.
+const CORE_VOCABULARY = [
+  { word: "der", rank: 1, translation: "the (masc)" },
+  { word: "die", rank: 2, translation: "the (fem)" },
+  { word: "und", rank: 3, translation: "and" },
+  { word: "in", rank: 4, translation: "in" },
+  { word: "sein", rank: 5, translation: "to be" },
+  { word: "haben", rank: 6, translation: "to have" },
+  { word: "werden", rank: 7, translation: "to become" },
+  { word: "Jahr", rank: 8, translation: "year" },
+  { word: "Uhr", rank: 9, translation: "clock/time" },
+  { word: "Beispiel", rank: 10, translation: "example" },
+  { word: "Zeit", rank: 11, translation: "time" },
+  { word: "Mensch", rank: 12, translation: "human" },
+  { word: "Kind", rank: 13, translation: "child" },
+  { word: "Tag", rank: 14, translation: "day" },
+  { word: "Land", rank: 15, translation: "country" },
+  { word: "Frage", rank: 16, translation: "question" },
+  { word: "Haus", rank: 17, translation: "house" },
+  { word: "Fall", rank: 18, translation: "case" },
+  { word: "Leute", rank: 19, translation: "people" },
+  { word: "Arbeit", rank: 20, translation: "work" },
+  // ... Imagine 1000s more here
+  { word: "Nachhaltigkeit", rank: 500, translation: "sustainability" },
+  { word: "Entwicklung", rank: 501, translation: "development" },
+  { word: "Erfahrung", rank: 502, translation: "experience" },
+  { word: "Gesellschaft", rank: 503, translation: "society" },
+  { word: "Verantwortung", rank: 504, translation: "responsibility" }
+];
+
+async function seedVocab() {
+  console.log('🌱 Seeding Core Vocabulary Database...');
+  
+  // We check if it exists so we don't overwrite progress if we run it again
+  // But for now, let's just create it fresh or merge.
+  
+  fs.writeFileSync(OUTPUT_FILE, JSON.stringify(CORE_VOCABULARY, null, 2));
+  console.log(`✅ Seeded ${CORE_VOCABULARY.length} words into data/vocabulary.json`);
+}
+
+seedVocab();
