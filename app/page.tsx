@@ -8,27 +8,44 @@ import ArticleReader from '../components/ArticleReader';
 import GrammarTrainer from '../components/GrammarTrainer';
 import VocabularyManager from '../components/VocabularyManager';
 import B1SentenceScrambler from '../components/B1SentenceScrambler';
-import { Article, VocabularyItem } from '../lib/data';
+import DailyQuests from '../components/DailyQuests';
+import { Article, VocabularyItem, DailyQuests as DailyQuestsType, calculateSM2 } from '../lib/data';
 import { LayoutDashboard, BookOpen, PenTool, BrainCircuit, Library } from 'lucide-react';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'immersion' | 'grammar' | 'practice' | 'vocabulary'>('immersion');
   const [readingArticle, setReadingArticle] = useState<Article | null>(null);
   const [vocabItems, setVocabItems] = useState<VocabularyItem[]>([]);
-  const [vocabProgress, setVocabProgress] = useState(0);
+  const [quests, setQuests] = useState<DailyQuestsType>({
+    date: new Date().toISOString().split('T')[0],
+    read: false,
+    vocab: false,
+    journal: false
+  });
 
+  // Load state from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem('swiss-nik-vocab');
-    if (stored) setVocabItems(JSON.parse(stored));
+    const storedVocab = localStorage.getItem('swiss-nik-vocab-v2');
+    if (storedVocab) setVocabItems(JSON.parse(storedVocab));
+
+    const storedQuests = localStorage.getItem('swiss-nik-quests');
+    const today = new Date().toISOString().split('T')[0];
+    if (storedQuests) {
+      const parsedQuests = JSON.parse(storedQuests);
+      if (parsedQuests.date === today) {
+        setQuests(parsedQuests);
+      }
+    }
   }, []);
 
+  // Persist state
   useEffect(() => {
-    const goal = 2000;
-    const baseKnowledge = 1200; 
-    const current = baseKnowledge + vocabItems.length;
-    setVocabProgress(Math.min(100, Math.round((current / goal) * 100)));
-    localStorage.setItem('swiss-nik-vocab', JSON.stringify(vocabItems));
+    localStorage.setItem('swiss-nik-vocab-v2', JSON.stringify(vocabItems));
   }, [vocabItems]);
+
+  useEffect(() => {
+    localStorage.setItem('swiss-nik-quests', JSON.stringify(quests));
+  }, [quests]);
 
   const handleSaveWord = (word: string, context: string) => {
     if (!vocabItems.some(v => v.word === word)) {
@@ -36,9 +53,29 @@ export default function Home() {
         id: Date.now().toString(),
         word,
         context,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        interval: 0,
+        repetition: 0,
+        easiness: 2.5,
+        nextReview: Date.now() // Due immediately
       };
       setVocabItems([newItem, ...vocabItems]);
+    }
+  };
+
+  const handleUpdateSRS = (id: string, quality: number) => {
+    setVocabItems(prev => prev.map(item => {
+      if (item.id === id) {
+        const result = calculateSM2(quality, item.interval, item.repetition, item.easiness);
+        return { ...item, ...result };
+      }
+      return item;
+    }));
+  };
+
+  const completeQuest = (type: keyof DailyQuestsType) => {
+    if (typeof quests[type] === 'boolean') {
+      setQuests(prev => ({ ...prev, [type]: true }));
     }
   };
 
@@ -55,22 +92,9 @@ export default function Home() {
         <h2 className="text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
           Willkommen, <span className="text-red-600">Nik</span>.
         </h2>
-        
-        <div className="max-w-xl mx-auto px-4 mt-6">
-          <div className="flex justify-between text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
-            <span>B1 Level</span>
-            <span>C1 Mastery Goal</span>
-          </div>
-          <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden shadow-inner">
-            <div 
-              className="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-1000 ease-out"
-              style={{ width: `${vocabProgress}%` }}
-            ></div>
-          </div>
-          <div className="mt-2 text-center text-sm font-medium text-gray-600">
-            Vocabulary Progress: {vocabProgress}% (Est. {1200 + vocabItems.length} words)
-          </div>
-        </div>
+        <p className="text-lg text-gray-500 max-w-2xl mx-auto font-light">
+          B1-C1 Precision Immersion System.
+        </p>
       </section>
 
       {/* Main Navigation Tabs */}
@@ -118,33 +142,41 @@ export default function Home() {
         
         {/* Tab: Immersion */}
         {activeTab === 'immersion' && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <ImmersionFeed onArticleClick={setReadingArticle} />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="lg:col-span-2">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <BookOpen className="text-red-600" /> Daily Feed
+                </h3>
+              </div>
+              <ImmersionFeed onArticleClick={(a) => {
+                setReadingArticle(a);
+                completeQuest('read');
+              }} />
+            </div>
+            <div className="space-y-6">
+              <DailyQuests quests={quests} />
+            </div>
           </div>
         )}
 
         {/* Tab: Vocabulary */}
         {activeTab === 'vocabulary' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <VocabularyManager items={vocabItems} onRemove={handleRemoveWord} />
+              <VocabularyManager 
+                items={vocabItems} 
+                onRemove={handleRemoveWord} 
+                onUpdateSRS={handleUpdateSRS}
+                onCompleteQuest={() => completeQuest('vocab')}
+              />
           </div>
         )}
 
-        {/* Tab: Grammar (NEW ENGINE) */}
+        {/* Tab: Grammar */}
         {activeTab === 'grammar' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-12">
-            <div className="text-center">
-              <h3 className="text-3xl font-black text-gray-900 uppercase tracking-tighter">Spatial Syntax Lab</h3>
-              <p className="text-gray-500">Master German connectors as visual reflexes.</p>
-            </div>
             <B1SentenceScrambler />
-            
-            <div className="mt-12">
-               <div className="text-center mb-6">
-                <h4 className="text-lg font-bold text-gray-400 uppercase tracking-widest">Quick Drills</h4>
-               </div>
-               <GrammarTrainer />
-            </div>
+            <GrammarTrainer />
           </div>
         )}
 
@@ -155,7 +187,7 @@ export default function Home() {
               <FlashcardDeck />
             </div>
             <div>
-              <Journal />
+              <Journal onComplete={() => completeQuest('journal')} />
             </div>
           </div>
         )}
