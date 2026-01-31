@@ -171,10 +171,7 @@ export default function Home() {
         {activeTab === 'practice' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <RefreshCcw size={20} className="text-red-600"/> Active Recall
-              </h3>
-              <FlashcardDeck />
+              <FlashcardDeck customItems={vocabItems} />
             </div>
             <div>
                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">

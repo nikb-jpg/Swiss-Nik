@@ -76,6 +76,7 @@ export default function ArticleReader({ article, onClose, onSaveWord }: ArticleR
         <div 
           className="p-8 overflow-y-auto leading-relaxed text-lg text-gray-700 font-serif"
           onMouseUp={handleMouseUp}
+          onTouchEnd={handleMouseUp}
         >
           {article.content.split('\n').map((paragraph, idx) => (
             <p key={idx} className="mb-4 whitespace-pre-line selection:bg-red-200 selection:text-red-900">
