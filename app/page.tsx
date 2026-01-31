@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import ImmersionFeed from '../components/ImmersionFeed';
+import DailyQuests from '../components/DailyQuests';
 import FlashcardDeck from '../components/FlashcardDeck';
 import Journal from '../components/Journal';
 import ArticleReader from '../components/ArticleReader';
@@ -16,12 +17,18 @@ export default function Home() {
   const [readingArticle, setReadingArticle] = useState<Article | null>(null);
   const [vocabItems, setVocabItems] = useState<VocabularyItem[]>([]);
   const [vocabProgress, setVocabProgress] = useState(0);
+  const [totalXP, setTotalXP] = useState(0);
 
-  // Load saved words from localStorage on mount
+  // Load saved words and XP from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem('swiss-nik-vocab');
-    if (stored) {
-      setVocabItems(JSON.parse(stored));
+    const storedVocab = localStorage.getItem('swiss-nik-vocab');
+    if (storedVocab) {
+      setVocabItems(JSON.parse(storedVocab));
+    }
+
+    const storedXP = localStorage.getItem('swiss-nik-xp');
+    if (storedXP) {
+      setTotalXP(parseInt(storedXP, 10));
     }
   }, []);
 
@@ -34,6 +41,14 @@ export default function Home() {
     
     localStorage.setItem('swiss-nik-vocab', JSON.stringify(vocabItems));
   }, [vocabItems]);
+
+  useEffect(() => {
+    localStorage.setItem('swiss-nik-xp', totalXP.toString());
+  }, [totalXP]);
+
+  const handleXPClaim = (amount: number) => {
+    setTotalXP(prev => prev + amount);
+  };
 
   const handleSaveWord = (word: string, context: string) => {
     // Prevent duplicates based on the word itself
@@ -69,6 +84,7 @@ export default function Home() {
         <div className="max-w-xl mx-auto px-4">
           <div className="flex justify-between text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
             <span>B1 Level</span>
+            <span className="text-red-600 font-extrabold">{totalXP} XP</span>
             <span>C1 Mastery Goal</span>
           </div>
           <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden shadow-inner">
@@ -129,6 +145,8 @@ export default function Home() {
         {/* Tab: Immersion */}
         {activeTab === 'immersion' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <DailyQuests onXPClaim={handleXPClaim} />
+             
              <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                   <BookOpen className="text-red-600" /> Daily Feed
