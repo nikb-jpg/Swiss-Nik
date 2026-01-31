@@ -1,0 +1,52 @@
+[
+  {
+    "id": "sit1",
+    "visualPrompt": "🏃‍♂️🌧️ (Jogging in the rain)",
+    "connector": "obwohl",
+    "clauseStructure": "NEBENSATZ",
+    "explanation": "'Obwohl' is a subordinating conjunction. The finite verb MUST move to the end of the clause.",
+    "tokens": [
+      { "id": "t1", "text": "Ich", "type": "SUBJECT", "role": "Ich" },
+      { "id": "t2", "text": "gehe", "type": "VERB", "role": "go" },
+      { "id": "t3", "text": "joggen,", "type": "OBJECT", "role": "jogging" },
+      { "id": "t4", "text": "obwohl", "type": "CONNECTOR", "role": "although" },
+      { "id": "t5", "text": "es", "type": "SUBJECT", "role": "it" },
+      { "id": "t6", "text": "regnet.", "type": "VERB", "role": "is raining" }
+    ],
+    "correctSequence": ["t1", "t2", "t3", "t4", "t5", "t6"]
+  },
+  {
+    "id": "sit2",
+    "visualPrompt": "☕️🛌 (Coffee then Bed)",
+    "connector": "trotzdem",
+    "clauseStructure": "HAUPTSATZ",
+    "explanation": "'Trotzdem' is a conjunctive adverb. It takes position 1, forcing the verb into position 2.",
+    "tokens": [
+      { "id": "u1", "text": "Es", "type": "SUBJECT", "role": "It" },
+      { "id": "u2", "text": "ist", "type": "VERB", "role": "is" },
+      { "id": "u3", "text": "spät.", "type": "ADVERB", "role": "late" },
+      { "id": "u4", "text": "Trotzdem", "type": "CONNECTOR", "role": "Nevertheless" },
+      { "id": "u5", "text": "trinke", "type": "VERB", "role": "drink" },
+      { "id": "u6", "text": "ich", "type": "SUBJECT", "role": "I" },
+      { "id": "u7", "text": "Kaffee.", "type": "OBJECT", "role": "coffee" }
+    ],
+    "correctSequence": ["u1", "u2", "u3", "u4", "u5", "u6", "u7"]
+  },
+  {
+    "id": "sit3",
+    "visualPrompt": "🍕😋 (Pizza/Hungry)",
+    "connector": "weil",
+    "clauseStructure": "NEBENSATZ",
+    "explanation": "'Weil' causes the verb to move to the very end of the sentence.",
+    "tokens": [
+      { "id": "v1", "text": "Ich", "type": "SUBJECT", "role": "I" },
+      { "id": "v2", "text": "esse", "type": "VERB", "role": "eat" },
+      { "id": "v3", "text": "Pizza,", "type": "OBJECT", "role": "pizza" },
+      { "id": "v4", "text": "weil", "type": "CONNECTOR", "role": "because" },
+      { "id": "v5", "text": "ich", "type": "SUBJECT", "role": "I" },
+      { "id": "v6", "text": "Hunger", "type": "OBJECT", "role": "hunger" },
+      { "id": "v7", "text": "habe.", "type": "VERB", "role": "have" }
+    ],
+    "correctSequence": ["v1", "v2", "v3", "v4", "v5", "v6", "v7"]
+  }
+]
