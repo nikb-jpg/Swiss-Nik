@@ -67,6 +67,11 @@ export default function VocabularyManager({ items, onRemove }: VocabularyManager
             </div>
             
             <div className="bg-gray-50 p-3 rounded-lg border-l-4 border-red-500 mb-3">
+              {item.translation && (
+                  <p className="text-sm font-bold text-gray-800 mb-1 border-b border-gray-200 pb-1">
+                    {item.translation}
+                  </p>
+              )}
               <p className="text-gray-700 italic font-serif">"{item.context}"</p>
             </div>
 

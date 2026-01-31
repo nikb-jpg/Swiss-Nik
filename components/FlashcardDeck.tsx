@@ -24,7 +24,7 @@ export default function FlashcardDeck({ customItems = [] }: FlashcardDeckProps) 
     ? customItems.map(item => ({
         id: item.id,
         german: item.word,
-        english: "Context / Meaning", // Placeholder as we don't have translation yet
+        english: item.translation || "Check Context", 
         exampleSentence: item.context,
         mastered: false
       }))
@@ -80,7 +80,7 @@ export default function FlashcardDeck({ customItems = [] }: FlashcardDeckProps) 
           <div className="absolute w-full h-full bg-slate-50 rounded-xl shadow-xl border-2 border-red-50 flex flex-col items-center justify-center p-8 rotate-y-180 backface-hidden">
               <span className="text-xs text-gray-400 uppercase tracking-widest mb-2">Context / Usage</span>
               <p className="text-lg text-gray-700 italic text-center font-serif leading-relaxed">"{currentCard.exampleSentence}"</p>
-              {!useCustom && <h3 className="text-xl font-semibold text-gray-800 mt-4">{currentCard.english}</h3>}
+              <h3 className="text-xl font-semibold text-gray-800 mt-4">{currentCard.english}</h3>
           </div>
         </div>
       </div>

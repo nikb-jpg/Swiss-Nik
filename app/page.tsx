@@ -8,16 +8,23 @@ import Journal from '../components/Journal';
 import ArticleReader from '../components/ArticleReader';
 import GrammarTrainer from '../components/GrammarTrainer';
 import VocabularyManager from '../components/VocabularyManager';
+import BossBattle from '../components/BossBattle';
 import { Article, VocabularyItem } from '../lib/data';
-import { LayoutDashboard, BookOpen, PenTool, BrainCircuit, RefreshCcw, Library } from 'lucide-react';
+import { LayoutDashboard, BookOpen, PenTool, BrainCircuit, RefreshCcw, Library, Swords } from 'lucide-react';
 
 export default function Home() {
   // State Management
   const [activeTab, setActiveTab] = useState<'immersion' | 'grammar' | 'practice' | 'vocabulary'>('immersion');
   const [readingArticle, setReadingArticle] = useState<Article | null>(null);
   const [vocabItems, setVocabItems] = useState<VocabularyItem[]>([]);
-  const [vocabProgress, setVocabProgress] = useState(0);
   const [totalXP, setTotalXP] = useState(0);
+  const [showBossBattle, setShowBossBattle] = useState(false);
+
+  // Derived State for Leveling
+  const currentLevel = Math.floor(totalXP / 500) + 1;
+  const nextLevelXP = currentLevel * 500;
+  const currentLevelXP = totalXP % 500;
+  const levelProgress = (currentLevelXP / 500) * 100;
 
   // Load saved words and XP from localStorage on mount
   useEffect(() => {
@@ -32,13 +39,8 @@ export default function Home() {
     }
   }, []);
 
-  // Update Progress calculation & Persist
+  // Persist Data
   useEffect(() => {
-    const goal = 2000;
-    const baseKnowledge = 1200; 
-    const current = baseKnowledge + vocabItems.length;
-    setVocabProgress(Math.min(100, Math.round((current / goal) * 100)));
-    
     localStorage.setItem('swiss-nik-vocab', JSON.stringify(vocabItems));
   }, [vocabItems]);
 
@@ -50,13 +52,14 @@ export default function Home() {
     setTotalXP(prev => prev + amount);
   };
 
-  const handleSaveWord = (word: string, context: string) => {
+  const handleSaveWord = (word: string, context: string, translation?: string) => {
     // Prevent duplicates based on the word itself
     if (!vocabItems.some(v => v.word === word)) {
       const newItem: VocabularyItem = {
         id: Date.now().toString(),
         word,
         context,
+        translation,
         timestamp: Date.now()
       };
       setVocabItems([newItem, ...vocabItems]);
@@ -83,18 +86,20 @@ export default function Home() {
         {/* Global Stats Bar */}
         <div className="max-w-xl mx-auto px-4">
           <div className="flex justify-between text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
-            <span>B1 Level</span>
+            <span>Level {currentLevel}</span>
             <span className="text-red-600 font-extrabold">{totalXP} XP</span>
-            <span>C1 Mastery Goal</span>
+            <span>Level {currentLevel + 1}</span>
           </div>
-          <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden shadow-inner">
+          <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden shadow-inner relative">
+             <div className="absolute inset-0 bg-gray-200 w-full h-full opacity-20" style={{backgroundImage: 'linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent)', backgroundSize: '1rem 1rem'}}></div>
             <div 
-              className="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-1000 ease-out"
-              style={{ width: `${vocabProgress}%` }}
-            ></div>
+              className="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-1000 ease-out relative"
+              style={{ width: `${levelProgress}%` }}
+            >
+            </div>
           </div>
           <div className="mt-2 text-center text-sm font-medium text-gray-600">
-            Vocabulary Progress: {vocabProgress}% (Est. {1200 + vocabItems.length} words)
+            {500 - currentLevelXP} XP to next level
           </div>
         </div>
       </section>
@@ -181,7 +186,7 @@ export default function Home() {
               <h3 className="text-2xl font-bold text-gray-900">Precision Grammar</h3>
               <p className="text-gray-500">Target weak points to reach C1 fluency.</p>
             </div>
-            <GrammarTrainer />
+            <GrammarTrainer userLevel={currentLevel} />
           </div>
         )}
 
@@ -190,6 +195,23 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div>
               <FlashcardDeck customItems={vocabItems} />
+              
+              {/* Boss Battle Entry */}
+              <div className="mt-8 bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl p-6 text-white shadow-lg border border-slate-700 relative overflow-hidden group cursor-pointer" onClick={() => setShowBossBattle(true)}>
+                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                      <Swords size={120} />
+                  </div>
+                  <div className="relative z-10">
+                      <div className="flex items-center gap-2 mb-2">
+                         <span className="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wider">Weekly Challenge</span>
+                      </div>
+                      <h3 className="text-2xl font-bold mb-1 group-hover:text-red-400 transition-colors">Boss Battle: Case Crusher</h3>
+                      <p className="text-slate-400 text-sm mb-4">Defeat the boss to prove your mastery of German cases.</p>
+                      <button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg font-bold text-sm transition-colors">
+                          <Swords size={16} /> Enter Arena
+                      </button>
+                  </div>
+              </div>
             </div>
             <div>
                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
@@ -207,6 +229,14 @@ export default function Home() {
           article={readingArticle} 
           onClose={() => setReadingArticle(null)} 
           onSaveWord={handleSaveWord}
+        />
+      )}
+
+      {/* Boss Battle Modal */}
+      {showBossBattle && (
+        <BossBattle 
+          onClose={() => setShowBossBattle(false)}
+          onVictory={() => handleXPClaim(50)}
         />
       )}
     </div>

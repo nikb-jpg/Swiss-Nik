@@ -7,22 +7,29 @@ import { X, Plus, BookOpen } from 'lucide-react';
 interface ArticleReaderProps {
   article: Article;
   onClose: () => void;
-  onSaveWord: (word: string, context: string) => void;
+  onSaveWord: (word: string, context: string, translation?: string) => void;
 }
 
 export default function ArticleReader({ article, onClose, onSaveWord }: ArticleReaderProps) {
   const [selectedText, setSelectedText] = useState("");
   const [detectedContext, setDetectedContext] = useState("");
+  const [translation, setTranslation] = useState("");
 
   const handleMouseUp = () => {
     const selection = window.getSelection();
     if (!selection || selection.toString().trim().length === 0) {
-      setSelectedText("");
-      setDetectedContext("");
-      return;
+      // Don't clear immediately if user is interacting with input
+      // But here we are handling selection on the text area.
+      // If the user clicks elsewhere, selection clears.
+      // We might want to keep the selection if the user is typing in the input.
+      // However, simplified behavior for now:
+      return; 
     }
 
     const text = selection.toString().trim();
+    // Only update if it's a new selection from the article content
+    // We need to ensure we aren't selecting text inside the input box itself (though it's outside the listener area)
+    
     setSelectedText(text);
 
     if (selection.anchorNode && selection.anchorNode.textContent) {
@@ -41,11 +48,21 @@ export default function ArticleReader({ article, onClose, onSaveWord }: ArticleR
 
   const handleSaveSelection = () => {
     if (selectedText) {
-      onSaveWord(selectedText, detectedContext);
+      onSaveWord(selectedText, detectedContext, translation);
       setSelectedText(""); 
       setDetectedContext("");
+      setTranslation("");
+      // Clear selection
+      window.getSelection()?.removeAllRanges();
     }
   };
+
+  const handleClear = () => {
+      setSelectedText("");
+      setDetectedContext("");
+      setTranslation("");
+      window.getSelection()?.removeAllRanges();
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
@@ -76,7 +93,6 @@ export default function ArticleReader({ article, onClose, onSaveWord }: ArticleR
         <div 
           className="p-8 overflow-y-auto leading-relaxed text-lg text-gray-700 font-serif"
           onMouseUp={handleMouseUp}
-          onTouchEnd={handleMouseUp}
         >
           {article.content.split('\n').map((paragraph, idx) => (
             <p key={idx} className="mb-4 whitespace-pre-line selection:bg-red-200 selection:text-red-900">
@@ -85,26 +101,39 @@ export default function ArticleReader({ article, onClose, onSaveWord }: ArticleR
           ))}
         </div>
 
-        <div className="p-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl min-h-[80px] flex items-center justify-center">
+        <div className="p-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl min-h-[80px] flex items-center justify-center transition-all duration-300">
           {!selectedText ? (
             <p className="text-sm text-gray-400 italic flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
               Highlight any word to save it with context.
             </p>
           ) : (
-            <div className="w-full flex justify-between items-center animate-in slide-in-from-bottom-2">
-              <div className="flex-1 mr-4">
-                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Context Preview:</p>
-                 <p className="text-sm text-gray-700 italic border-l-2 border-red-300 pl-2 line-clamp-2">
-                   "{detectedContext}"
-                 </p>
+            <div className="w-full flex flex-col md:flex-row justify-between items-center gap-4 animate-in slide-in-from-bottom-2">
+              <div className="flex-1 w-full space-y-2">
+                 <div>
+                    <div className="flex justify-between items-center">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Context Preview:</p>
+                        <button onClick={handleClear} className="text-xs text-red-400 hover:text-red-600">Cancel</button>
+                    </div>
+                    <p className="text-sm text-gray-700 italic border-l-2 border-red-300 pl-2 line-clamp-2">
+                      "{detectedContext}"
+                    </p>
+                 </div>
+                 <input 
+                    type="text" 
+                    placeholder="Add translation / meaning (optional)..."
+                    className="w-full text-sm p-2 border border-gray-200 rounded-md focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-100 bg-white"
+                    value={translation}
+                    onChange={(e) => setTranslation(e.target.value)}
+                    autoFocus
+                 />
               </div>
               <button 
                 onClick={handleSaveSelection}
-                className="flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                className="w-full md:w-auto flex-shrink-0 flex items-center justify-center gap-2 bg-red-600 text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
               >
                 <Plus size={18} />
-                Save "{selectedText}"
+                Save "{selectedText.length > 15 ? selectedText.substring(0, 12) + '...' : selectedText}"
               </button>
             </div>
           )}

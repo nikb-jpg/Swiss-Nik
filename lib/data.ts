@@ -28,6 +28,7 @@ export interface VocabularyItem {
   id: string;
   word: string;
   context: string; // The example sentence
+  translation?: string;
   timestamp: number;
 }
 
